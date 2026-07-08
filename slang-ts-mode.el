@@ -4,11 +4,12 @@
 ;; Portions adapted from GNU Emacs (c-ts-mode.el),
 ;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
 
-;; Author: Vostranox
-;; Maintainer: Vostranox
-;; Keywords: languages, slang, shader, graphics, tree-sitter
+;; Author: Vostranox <vostranox@gmail.com>
+;; Maintainer: Vostranox <vostranox@gmail.com>
+;; Keywords: languages
 ;; Version: 1.0
 ;; Package-Requires: ((emacs "30.1"))
+;; URL: https://github.com/Vostranox/slang-ts-mode
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -32,6 +33,8 @@
 ;; This mode requires the tree-sitter grammar from
 ;; https://github.com/theHamsta/tree-sitter-slang.  If it is not
 ;; installed yet, run `M-x slang-ts-mode-install-grammar'.
+
+;;; Code:
 
 (require 'treesit)
 (require 'c-ts-common)
@@ -63,7 +66,7 @@
   '(slang "https://github.com/theHamsta/tree-sitter-slang")
   "Recipe for `treesit-language-source-alist' to build the Slang grammar.")
 
-(when (boundp 'treesit-language-source-alist)
+(unless (assq 'slang treesit-language-source-alist)
   (add-to-list 'treesit-language-source-alist slang-ts-mode-grammar-source))
 
 ;;;###autoload
@@ -103,7 +106,7 @@ The grammar is built from `slang-ts-mode-grammar-source' using
 < and > are usually punctuation, e.g., in ->.  But when used for
 generics, they should be considered pairs.
 
-This function checks for < and > in the changed RANGES and
+This function checks for < and > between BEG and END and
 applies the appropriate text property to alter the syntax of
 template delimiters < and >'s."
   (goto-char beg)
@@ -893,9 +896,7 @@ install it with \\[slang-ts-mode-install-grammar].
 (derived-mode-add-parents 'slang-ts-mode '(slang-mode))
 
 ;;;###autoload
-(progn
-  (add-to-list 'auto-mode-alist '("\\.slang\\'" . slang-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.slangh\\'" . slang-ts-mode)))
+(add-to-list 'auto-mode-alist '("\\.slangh?\\'" . slang-ts-mode))
 
 (provide 'slang-ts-mode)
 

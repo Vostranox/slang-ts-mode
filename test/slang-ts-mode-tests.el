@@ -1,13 +1,31 @@
-;;; test-slang-ts-mode.el --- Tests for slang-ts-mode -*- lexical-binding: t; -*-
+;;; slang-ts-mode-tests.el --- Tests for slang-ts-mode -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2026 Vostranox
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;; ERT tests for `slang-ts-mode'.  Run from the repository root with:
 ;;
-;;   emacs -Q -batch -L . -l test-slang-ts-mode.el -f ert-run-tests-batch-and-exit
+;;   emacs -Q -batch -L . -l test/slang-ts-mode-tests.el -f ert-run-tests-batch-and-exit
 ;;
 
+;;; Code:
+
 (require 'ert)
+(require 'cl-lib)
 (require 'treesit)
 
 (defvar slang-ts-test--here
@@ -16,13 +34,13 @@
 (defun slang-ts-test--ensure-grammar ()
   "Make the Slang grammar loadable, compiling it if necessary.
 Return non-nil if the grammar is available."
-  (let ((lib-dir (expand-file-name ".scratch/ts" slang-ts-test--here)))
+  (let ((lib-dir (expand-file-name "../.scratch/ts" slang-ts-test--here)))
     (when (file-directory-p lib-dir)
       (add-to-list 'treesit-extra-load-path lib-dir))
     (or (treesit-ready-p 'slang t)
         (let* ((grammar-dir
                 (or (getenv "TREE_SITTER_SLANG_DIR")
-                    (expand-file-name "../tree-sitter-slang"
+                    (expand-file-name "../../tree-sitter-slang"
                                       slang-ts-test--here)))
                (parser-c (expand-file-name "src/parser.c" grammar-dir))
                (scanner-c (expand-file-name "src/scanner.c" grammar-dir))
@@ -49,8 +67,8 @@ Return non-nil if the grammar is available."
      (skip-unless (treesit-ready-p 'slang t))
      (insert-file-contents (expand-file-name "test.slang"
                                              slang-ts-test--here))
-     (setq-local case-fold-search nil)
      (slang-ts-mode)
+     (setq-local case-fold-search nil)
      (setq-local treesit-font-lock-level 4)
      (treesit-font-lock-recompute-features)
      (font-lock-ensure)
@@ -71,7 +89,7 @@ With OFFSET, look that many characters past the match start."
                'slang))))
 
 (ert-deftest slang-ts-mode-fixture-parses-cleanly ()
-  "test.slang must contain no ERROR or missing nodes."
+  "Fixture test.slang must contain no ERROR or missing nodes."
   (slang-ts-test--with-file
    (let ((bad 0))
      (cl-labels ((walk (node)
@@ -300,6 +318,4 @@ directly on the nested member nodes."
                      (enclosing "return flags >> 16" "property_declaration"))
                     "highBits")))))
 
-(provide 'test-slang-ts-mode)
-
-;;; test-slang-ts-mode.el ends here
+;;; slang-ts-mode-tests.el ends here

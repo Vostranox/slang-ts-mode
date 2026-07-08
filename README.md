@@ -4,20 +4,35 @@ Tree-sitter major mode for the [Slang](https://shader-slang.org) shading
 language. Requires Emacs 30.1+ with tree-sitter and the
 [tree-sitter-slang](https://github.com/theHamsta/tree-sitter-slang) grammar.
 
-## Setup
+## Installation
+
+From MELPA (pending):
 
 ```elisp
+(use-package slang-ts-mode
+  :ensure t)
+```
+
+Or manually, clone this repository and add it to your `load-path`:
+
+```elisp
+(add-to-list 'load-path "/path/to/slang-ts-mode")
 (require 'slang-ts-mode)
-;; First time only (needs git and a C compiler):
-;; M-x slang-ts-mode-install-grammar
 ```
 
 `.slang` and `.slangh` files then open in `slang-ts-mode`.
 
+## Tree-sitter grammar
+
+The mode needs the
+[tree-sitter-slang](https://github.com/theHamsta/tree-sitter-slang)
+grammar. Install it with `M-x slang-ts-mode-install-grammar` (needs git
+and a C compiler).
+
 ## Tests
 
 ```sh
-emacs -Q -batch -L . -l test-slang-ts-mode.el -f ert-run-tests-batch-and-exit
+emacs -Q -batch -L . -l test/slang-ts-mode-tests.el -f ert-run-tests-batch-and-exit
 ```
 
 ## Acknowledgments
