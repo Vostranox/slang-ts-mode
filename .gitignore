@@ -1,0 +1,8 @@
+*
+
+!.gitignore
+!LICENSE
+!README.md
+!slang-ts-mode.el
+!test.slang
+!test-slang-ts-mode.el
