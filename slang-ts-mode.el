@@ -32,7 +32,9 @@
 ;;
 ;; This mode requires the tree-sitter grammar from
 ;; https://github.com/theHamsta/tree-sitter-slang.  If it is not
-;; installed yet, run `M-x slang-ts-mode-install-grammar'.
+;; installed yet, the mode offers to install it on first use (see
+;; `slang-ts-mode-grammar-install'), or run
+;; `M-x slang-ts-mode-install-grammar' manually.
 
 ;;; Code:
 
@@ -62,6 +64,17 @@
   :safe 'integerp
   :group 'slang-ts)
 
+(defcustom slang-ts-mode-grammar-install 'ask
+  "Whether to install the Slang tree-sitter grammar when it is missing.
+If `ask', offer to install it when the mode is activated without
+the grammar; if `always', install it without asking; if nil, only
+explain how to install it manually.  Installing needs Git, a C
+compiler, and network access."
+  :type '(choice (const :tag "Ask before installing" ask)
+                 (const :tag "Install without asking" always)
+                 (const :tag "Never install automatically" nil))
+  :group 'slang-ts)
+
 (defvar slang-ts-mode-grammar-source
   '(slang "https://github.com/theHamsta/tree-sitter-slang")
   "Recipe for `treesit-language-source-alist' to build the Slang grammar.")
@@ -78,6 +91,18 @@ The grammar is built from `slang-ts-mode-grammar-source' using
   (unless (assq 'slang treesit-language-source-alist)
     (add-to-list 'treesit-language-source-alist slang-ts-mode-grammar-source))
   (treesit-install-language-grammar 'slang))
+
+(defun slang-ts-mode--ensure-grammar ()
+  "Install the Slang grammar if missing, per `slang-ts-mode-grammar-install'."
+  (unless (treesit-ready-p 'slang t)
+    (pcase slang-ts-mode-grammar-install
+      ('always (slang-ts-mode-install-grammar))
+      ((and 'ask (guard (and (not noninteractive)
+                             (y-or-n-p "\
+Slang tree-sitter grammar is not installed; download and build it now? "))))
+       (slang-ts-mode-install-grammar))
+      (_ (message
+          "Install the grammar with `M-x slang-ts-mode-install-grammar'")))))
 
 (defvar slang-ts-mode--syntax-table
   (let ((table (make-syntax-table)))
@@ -825,12 +850,15 @@ the struct node; skip it."
 
 This mode needs the tree-sitter grammar for Slang from
 URL `https://github.com/theHamsta/tree-sitter-slang'.  You can
-install it with \\[slang-ts-mode-install-grammar].
+install it with \\[slang-ts-mode-install-grammar]; when it is
+missing, the mode also offers to install it, controlled by
+`slang-ts-mode-grammar-install'.
 
 \\{slang-ts-mode-map}"
   :group 'slang-ts
   :syntax-table slang-ts-mode--syntax-table
 
+  (slang-ts-mode--ensure-grammar)
   (when (treesit-ready-p 'slang)
     (treesit-parser-create 'slang)
 

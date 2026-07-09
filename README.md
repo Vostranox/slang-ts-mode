@@ -26,8 +26,13 @@ Or manually, clone this repository and add it to your `load-path`:
 
 The mode needs the
 [tree-sitter-slang](https://github.com/theHamsta/tree-sitter-slang)
-grammar. Install it with `M-x slang-ts-mode-install-grammar` (needs git
-and a C compiler).
+grammar. Building it requires git and a C compiler.
+
+When the grammar is missing, the mode asks on first use whether to
+download and build it. The variable `slang-ts-mode-grammar-install`
+controls this: `ask` (the default), `always` to install without
+asking, or `nil` to never install automatically. To install manually
+instead, run `M-x slang-ts-mode-install-grammar`.
 
 ## Tests
 
