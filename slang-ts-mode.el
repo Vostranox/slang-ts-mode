@@ -31,7 +31,7 @@
 ;; A tree-sitter based major mode for the Slang shading language (https://shader-slang.org).
 ;;
 ;; This mode requires the tree-sitter grammar from
-;; https://github.com/theHamsta/tree-sitter-slang.  If it is not
+;; https://github.com/Vostranox/tree-sitter-slang.  If it is not
 ;; installed yet, the mode offers to install it on first use (see
 ;; `slang-ts-mode-grammar-install'), or run
 ;; `M-x slang-ts-mode-install-grammar' manually.
@@ -76,7 +76,7 @@ compiler, and network access."
   :group 'slang-ts)
 
 (defvar slang-ts-mode-grammar-source
-  '(slang "https://github.com/theHamsta/tree-sitter-slang")
+  '(slang "https://github.com/Vostranox/tree-sitter-slang")
   "Recipe for `treesit-language-source-alist' to build the Slang grammar.")
 
 (unless (assq 'slang treesit-language-source-alist)
@@ -849,7 +849,7 @@ the struct node; skip it."
   "Major mode for editing Slang shader files, powered by tree-sitter.
 
 This mode needs the tree-sitter grammar for Slang from
-URL `https://github.com/theHamsta/tree-sitter-slang'.  You can
+URL `https://github.com/Vostranox/tree-sitter-slang'.  You can
 install it with \\[slang-ts-mode-install-grammar]; when it is
 missing, the mode also offers to install it, controlled by
 `slang-ts-mode-grammar-install'.
