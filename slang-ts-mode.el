@@ -364,7 +364,21 @@ closing brace, indent relative to that brace's parent instead."
      ((parent-is "while_statement") standalone-parent slang-ts-mode-indent-offset)
      ((parent-is "do_statement") standalone-parent slang-ts-mode-indent-offset)
 
-     ((parent-is "case_statement") standalone-parent slang-ts-mode-indent-offset)))
+     ((parent-is "case_statement") standalone-parent slang-ts-mode-indent-offset)
+
+     ((n-p-gp "hlsl_attribute" nil "translation_unit") column-0 0)
+     ((match "hlsl_attribute" nil nil 1 nil)
+      slang-ts-mode--anchor-prev-sibling 0)
+     ((node-is "hlsl_attribute")
+      slang-ts-mode--standalone-grandparent slang-ts-mode-indent-offset)
+
+     ((parent-is ,(rx bos (or "field_declaration" "attributed_statement"
+                              "init_declaration" "subscript_declaration"
+                              "property_declaration"
+                              "associatedtype_declaration"
+                              "typealias_declaration")
+                      eos))
+      parent-bol 0)))
   "Tree-sitter indent rules for `slang-ts-mode'.")
 
 (defvar slang-ts-mode--keywords
