@@ -74,6 +74,19 @@ Return non-nil if the grammar is available."
      (font-lock-ensure)
      ,@body))
 
+(defmacro slang-ts-test--with-source (source &rest body)
+  "Run BODY in a fontified `slang-ts-mode' buffer containing SOURCE."
+  (declare (indent 1))
+  `(with-temp-buffer
+     (skip-unless (treesit-ready-p 'slang t))
+     (insert ,source)
+     (slang-ts-mode)
+     (setq-local case-fold-search nil)
+     (setq-local treesit-font-lock-level 4)
+     (treesit-font-lock-recompute-features)
+     (font-lock-ensure)
+     ,@body))
+
 (defun slang-ts-test--face-at (text &optional offset)
   "Return the face at the start of the first occurrence of TEXT.
 With OFFSET, look that many characters past the match start."
@@ -158,11 +171,45 @@ With OFFSET, look that many characters past the match start."
 (ert-deftest slang-ts-mode-font-lock-attributes ()
   (slang-ts-test--with-file
    (should (eq (slang-ts-test--face-at "numthreads")
-               'font-lock-preprocessor-face))
+               'font-lock-type-face))
    (should (eq (slang-ts-test--face-at "shader(\"fragment\")")
-               'font-lock-preprocessor-face))
+               'font-lock-type-face))
    (should (eq (slang-ts-test--face-at "\"fragment\"")
                'font-lock-string-face))))
+
+(ert-deftest slang-ts-mode-font-lock-qualified-attributes ()
+  "Namespaced attribute names: the name is a type, qualifiers stay plain."
+  (slang-ts-test--with-source
+      "[vk::test, vk::hello(x), vk::test::hello(), a::b::c::d::e]\nvoid f() {}\n"
+    (dolist (probe '(("[vk::test" . 5) ("vk::hello(x)" . 4)
+                     ("vk::test::hello()" . 10) ("a::b::c::d::e" . 12)))
+      (should (eq (slang-ts-test--face-at (car probe) (cdr probe))
+                  'font-lock-type-face)))
+    (dolist (probe '(("[vk::test" . 1) ("vk::hello(x)" . 0)
+                     ("vk::test::hello()" . 0) ("vk::test::hello()" . 4)
+                     ("a::b::c::d::e" . 0) ("a::b::c::d::e" . 3)
+                     ("a::b::c::d::e" . 6) ("a::b::c::d::e" . 9)))
+      (should (eq (slang-ts-test--face-at (car probe) (cdr probe))
+                  'default)))
+    (should (eq (slang-ts-test--face-at "[vk::test")
+                'font-lock-bracket-face))
+    (should (eq (slang-ts-test--face-at "(x)" 1)
+                'font-lock-variable-use-face))))
+
+(ert-deftest slang-ts-mode-font-lock-qualified-calls ()
+  "Namespaced callees get the call face at any depth."
+  (slang-ts-test--with-source
+      "void f() {\n  a::f();\n  a::b::f();\n  a::b::c::g(1);\n  int y = a::b::c;\n}\n"
+    (should (eq (slang-ts-test--face-at "a::f()" 3)
+                'font-lock-function-call-face))
+    (should (eq (slang-ts-test--face-at "a::b::f()" 6)
+                'font-lock-function-call-face))
+    (should (eq (slang-ts-test--face-at "a::b::c::g(1)" 9)
+                'font-lock-function-call-face))
+    (should (eq (slang-ts-test--face-at "a::b::f()" 3)
+                'font-lock-constant-face))
+    (should (eq (slang-ts-test--face-at "a::b::c;" 6)
+                'font-lock-variable-use-face))))
 
 (ert-deftest slang-ts-mode-font-lock-functions ()
   (slang-ts-test--with-file

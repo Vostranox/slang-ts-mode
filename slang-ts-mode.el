@@ -561,6 +561,36 @@ instead.  For OVERRIDE, START, and END, see
      (treesit-node-start node) (treesit-node-end node)
      face override start end)))
 
+(defun slang-ts-mode--fontify-attribute-name (node override start end &rest _)
+  "Fontify the qualified attribute name NODE.
+Namespace segments stay plain, the name is a type.  For OVERRIDE,
+START, and END, see `treesit-font-lock-rules'."
+  (dolist (child (treesit-node-children node t))
+    (pcase (treesit-node-type child)
+      ((or "qualified_identifier" "template_function")
+       (slang-ts-mode--fontify-attribute-name child override start end))
+      ("namespace_identifier"
+       (treesit-fontify-with-override
+        (treesit-node-start child) (treesit-node-end child)
+        'default override start end))
+      ("identifier"
+       (treesit-fontify-with-override
+        (treesit-node-start child) (treesit-node-end child)
+        'font-lock-type-face override start end)))))
+
+(defun slang-ts-mode--fontify-call-name (node override start end &rest _)
+  "Fontify the last segment of the qualified name NODE as a call.
+For OVERRIDE, START, and END, see `treesit-font-lock-rules'."
+  (let ((name (treesit-node-child-by-field-name node "name")))
+    (while (and name
+                (member (treesit-node-type name)
+                        '("qualified_identifier" "template_function")))
+      (setq name (treesit-node-child-by-field-name name "name")))
+    (when (and name (equal (treesit-node-type name) "identifier"))
+      (treesit-fontify-with-override
+       (treesit-node-start name) (treesit-node-end name)
+       'font-lock-function-call-face override start end))))
+
 (defvar slang-ts-mode--font-lock-settings
   (treesit-font-lock-rules
    :language 'slang
@@ -597,11 +627,14 @@ instead.  For OVERRIDE, START, and END, see
 
    :language 'slang
    :feature 'attribute
-   '((hlsl_attribute ["[" "]"] @font-lock-preprocessor-face)
-     (hlsl_attribute (identifier) @font-lock-preprocessor-face)
+   '((hlsl_attribute (identifier) @font-lock-type-face)
+     (hlsl_attribute
+      (qualified_identifier) @slang-ts-mode--fontify-attribute-name)
      (hlsl_attribute
       (call_expression
-       function: (identifier) @font-lock-preprocessor-face)))
+       function: [(identifier) @font-lock-type-face
+                  (qualified_identifier)
+                  @slang-ts-mode--fontify-attribute-name])))
 
    :language 'slang
    :feature 'constant
@@ -719,8 +752,7 @@ instead.  For OVERRIDE, START, and END, see
         field: (field_identifier) @font-lock-function-call-face)
        (template_function
         name: (identifier) @font-lock-function-call-face)
-       (qualified_identifier
-        name: (identifier) @font-lock-function-call-face)]))
+       (qualified_identifier) @slang-ts-mode--fontify-call-name]))
 
    :language 'slang
    :feature 'variable
