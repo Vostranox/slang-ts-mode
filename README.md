@@ -6,18 +6,12 @@ language. Requires Emacs 30.1+ with tree-sitter and the
 
 ## Installation
 
-From MELPA (pending):
+With Emacs 30.1 or newer and Git installed, add this to your init file to install directly from GitHub using [`use-package :vc`](https://www.gnu.org/software/emacs/manual/html_node/use-package/Install-package.html):
 
 ```elisp
 (use-package slang-ts-mode
-  :ensure t)
-```
-
-Or manually, clone this repository and add it to your `load-path`:
-
-```elisp
-(add-to-list 'load-path "/path/to/slang-ts-mode")
-(require 'slang-ts-mode)
+  :vc (:url "https://github.com/Vostranox/slang-ts-mode" :rev :newest)
+  :demand t)
 ```
 
 `.slang` and `.slangh` files then open in `slang-ts-mode`.
